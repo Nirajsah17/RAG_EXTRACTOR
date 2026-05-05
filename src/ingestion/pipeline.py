@@ -51,11 +51,11 @@ class RAGPipeline:
         # 1. Detect PDF type
         pdf_type = self._detect(file_path)
 
-        # # 2. Route extractor
-        # extractor = self._route(pdf_type)
+        # 2. Route extractor
+        extractor = self._route(pdf_type)
 
         # # 3. Extract text
-        # raw_text = self._extract(extractor, file_path)
+        raw_text = self._extract(extractor, file_path)
 
         # # 4. Validate text
         # clean_text = self._validate(raw_text)

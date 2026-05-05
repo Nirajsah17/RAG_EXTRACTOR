@@ -6,7 +6,7 @@ class PDFClassifier:
 
     def classify(self, file_path: str):
         doc = fitz.open(file_path)
-
+        
         total_pages = len(doc)
         image_pages = 0
         text_pages = 0
