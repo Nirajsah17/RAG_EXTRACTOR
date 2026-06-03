@@ -1,17 +1,33 @@
-from extractor.extractor import PdfExtractor
+from extractor.pdf.extractor import PdfExtractor
 
-class ExtractionRouter(self):
-  def __init__(self):
-    pass
-  
-  def _route(self, pdf_type: str):
-    if pdf_type == "scanned":
-      return pass
-    elif pdf_type == "digital":
-      return PdfExtractor
-    elif pdf_type == "mixed":
-      return pass
-    elif pdf_type == "scanned+ocr":
-      return pass
-    else:
-      raise ValueError(f"Unsupported PDF type: {pdf_type}")
+
+class ExtractionRouter:
+    def get_extractor(self, pdf_type: str, pdf_path: str):
+        normalized_type = pdf_type.lower().strip()
+
+        if normalized_type in {'digital', 'mixed'}:
+            from extractor.pdf.pdfplumber_extractor import PdfPlumberExtractor
+            from extractor.pdf.pymupdf_extractor import PyMuPDFExtractor
+
+            return PdfExtractor(
+                pdf_path,
+                [
+                    PdfPlumberExtractor(pdf_path),
+                    PyMuPDFExtractor(pdf_path),
+                ],
+            )
+
+        if normalized_type == 'scanned':
+            from extractor.pdf.pymupdf_extractor import PyMuPDFExtractor
+
+            return PyMuPDFExtractor(pdf_path)
+
+        if normalized_type == 'scanned+ocr':
+            from extractor.pdf.pymupdf_extractor import PyMuPDFExtractor
+
+            return PdfExtractor(
+                pdf_path,
+                [PyMuPDFExtractor(pdf_path)],
+            )
+
+        raise ValueError(f'Unsupported PDF type: {pdf_type}')

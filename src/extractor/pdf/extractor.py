@@ -1,38 +1,20 @@
+from typing import List
 
-from pdfplumber_extract import PdfPlumberExtractor
-from pymupdf_extractor import PyMuPDFExtractor
+from .base_extractor import BaseExtractor
+
 
 class PdfExtractor:
-  def __init__(self, extractors):
-      self.extractors = extractors
+    def __init__(self, pdf_path: str, extractors: List[BaseExtractor]) -> None:
+        self.pdf_path = pdf_path
+        self.extractors = extractors
 
-  def _extract(self):
-    all_elements = []
+    def extract(self) -> str:
+        extracted_fragments = []
 
-    for extractor in self.extractors:
-        try:
-            data = extractor.extract()
-            all_elements.extend(data)
-        except Exception as e:
-            print(f"Extractor failed: {e}")
+        for extractor in self.extractors:
+            try:
+                extracted_fragments.append(extractor.extract())
+            except Exception as exc:
+                print(f'Extractor failed: {exc}')
 
-    all_elements.sort(
-        key=lambda x: (
-            x["page"],
-            x["bbox"][1] if x["bbox"] else 0
-        )
-    )
-
-  return all_elements
-
-def pdf_extractor(pdf_path):
-  
-  extractor = PdfExtractor([
-      PyMuPDFExtractor(pdf_path),
-      PdfPlumberExtractor(pdf_path)
-  ])
-
-    elements = extractor.extract()
-
-    # for el in elements[:10]:
-    #     print(el)
+        return '\n\n'.join(fragment.strip() for fragment in extracted_fragments if fragment)

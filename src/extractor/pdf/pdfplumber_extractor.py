@@ -1,31 +1,21 @@
-import pdfplumber
-from base_extractor import BaseExtractor
+from .base_extractor import BaseExtractor
+
 
 class PdfPlumberExtractor(BaseExtractor):
-  def __init__(self, pdf_path: str):
-      self.pdf_path = pdf_path
+    def __init__(self, pdf_path: str) -> None:
+        self.pdf_path = pdf_path
 
-  def extract(self):
-    elements = []
-    with pdfplumber.open(self.pdf_path) as pdf:
-      for page_num, page in enumerate(pdf.pages):
-        words = page.extract_words()
-        for w in words:
-          elements.append({
-              "type": "text",
-              "content": w["text"],
-              "page": page_num,
-              "bbox": (w["x0"], w["top"], w["x1"], w["bottom"]),
-              "metadata": {"source": "pdfplumber"}
-          })
+    def extract(self) -> str:
+        try:
+            import pdfplumber
+        except ImportError as exc:
+            raise ImportError('pdfplumber is required for PdfPlumberExtractor. Install it with `pip install pdfplumber`.') from exc
 
-        for table in page.extract_tables():
-          elements.append({
-              "type": "table",
-              "content": table,
-              "page": page_num,
-              "bbox": None,
-              "metadata": {"source": "pdfplumber"}
-          })
+        text_parts = []
+        with pdfplumber.open(self.pdf_path) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text() or ''
+                if page_text:
+                    text_parts.append(page_text)
 
-    return elements
+        return '\n\n'.join(text_parts).strip()
