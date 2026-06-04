@@ -6,10 +6,13 @@ from validator.text_validator import TextValidator
 from chunking.semantic_chunker import SemanticChunker
 from chunking.layout_chunker import LayoutChunker
 from extractor.pdf.layout_aware_extractor import LayoutAwareExtractor
+from embedding.embedder import Embedder
 from utils.logger import get_logger
+from utils.utils import text_parser
 
 logger = get_logger(__name__)
 
+embedder = Embedder()
 
 class RAGPipeline:
     def __init__(self, use_layout_aware: bool = False) -> None:
@@ -76,12 +79,17 @@ class RAGPipeline:
                 result['chunks'] = chunks
                 result['num_chunks'] = len(chunks)
                 logger.info(f'Created {len(chunks)} layout-aware chunks with page numbers (tables in stream)')
+                logger.info(f'Embedding generation started .....')
+                texts = [text_parser(chunk.content) for chunk in chunks]
+                result['embeddings'] = embedder.embed(texts)
+                logger.info(f'Generated embeddings length : {len(result["embeddings"][0])} for first chunk')
+                logger.info(f'Embedding generation completed')
         else:
             # Fall back to text-based chunking
             chunks = self._chunk(clean_text, file_path)
             result['chunks'] = chunks
             result['num_chunks'] = len(chunks)
-        
+            result['embeddings'] = embedder.embed([chunk.content for chunk in chunks])
         return result
 
     def _detect(self, file_path: str) -> str:

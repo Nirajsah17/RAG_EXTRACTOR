@@ -37,10 +37,6 @@ def main() -> None:
         output_dir=args.output_dir,
     )
 
-    print('\nFinal Results:')
-    for item in results:
-        print(item)
-
 
 if __name__ == '__main__':
     main()
