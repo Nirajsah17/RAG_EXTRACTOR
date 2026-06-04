@@ -14,12 +14,28 @@ def main() -> None:
     )
     parser.add_argument('--log_level', default='INFO', help='Logging level')
     parser.add_argument('--log_dir', default='logs', help='Directory for log files')
+    parser.add_argument(
+        '--output_dir',
+        default='data/processed',
+        help='Directory to save JSON results (default: data/processed)',
+    )
+    parser.add_argument(
+        '--save_results',
+        type=bool,
+        default=True,
+        help='Save extraction results to JSON files (default: True)',
+    )
 
     args = parser.parse_args()
     input_path = Path(args.path)
 
-    pipeline = RAGPipeline()
-    results = process_path(input_path, pipeline)
+    pipeline = RAGPipeline(use_layout_aware=True)
+    results = process_path(
+        input_path,
+        pipeline,
+        save_results=args.save_results,
+        output_dir=args.output_dir,
+    )
 
     print('\nFinal Results:')
     for item in results:
