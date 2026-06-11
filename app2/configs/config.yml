@@ -1,0 +1,10 @@
+input_dir: data/input
+output_dir: data/output
+
+chunk_size: 1000
+chunk_overlap: 150
+
+enable_ocr: true
+enable_tables: true
+
+heading_font_size_threshold: 13

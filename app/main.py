@@ -62,7 +62,8 @@ def main() -> None:
     # )
     
     pipeline = ExtractionPipeline(
-        input_path =  input_path   
+        input_path =  input_path,
+        output_path =  args.output_dir
     )
     pipeline.run()
 
