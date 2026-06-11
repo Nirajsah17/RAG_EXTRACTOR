@@ -1,72 +1,49 @@
-import argparse
+from config import load_config
+from parser.builder import build_document
+# from chunker.chunker import chunk_nodes
+from chunker.chunker import chunk_with_headings
+from utils.logger import get_logger
+
+from utils.file_utils import ensure_dir
 from pathlib import Path
+import json
 
-# from ingestion.orchestrator import process_path
-# from ingestion.pipeline import RAGPipeline
-from pipeline import ExtractionPipeline
+def main():
+    logger = get_logger()
+    config = load_config()
 
-# from fio.reader import is_file_exist, is_dir_exist, ispdf, is_dir_contains_pdf
+    ensure_dir(config.output_dir)
 
+    pdf_path = Path(config.input_dir) / "kehs102.pdf"
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description='RAG Ingestion Pipeline')
-    parser.add_argument(
-        'path',
-        type=str,
-        help='Path to a PDF file or a folder containing PDFs',
-    )
-    parser.add_argument('--log_level', default='INFO', help='Logging level')
-    parser.add_argument('--log_dir', default='logs', help='Directory for log files')
-    parser.add_argument(
-        '--output_dir',
-        default='data/processed',
-        help='Directory to save JSON results (default: data/processed)',
-    )
-    parser.add_argument(
-        '--save_results',
-        type=bool,
-        default=True,
-        help='Save extraction results to JSON files (default: True)',
+    logger.info("Parsing PDF...")
+
+    nodes = build_document(str(pdf_path), config)
+
+    logger.info(f"Total nodes: {len(nodes)}")
+
+    # chunks = chunk_nodes(nodes, config.chunk_size)
+    # chunks = chunk_nodes(nodes, config)
+    # chunks = chunk_nodes(nodes, config.chunk_size, config.chunk_overlap)
+    chunks = chunk_with_headings(
+        nodes,
+        config.chunk_size,
+        config.chunk_overlap
     )
 
-    args = parser.parse_args()
-    
-    input_path = Path(args.path)
+    logger.info(f"Total chunks: {len(chunks)}")
 
-    # if not is_file_exist(input_path) and not is_dir_exist(input_path):
-    #     print(f"Error: Path does not exist: {input_path}")
-    #     return
-    # if is_file_exist(input_path) and not ispdf(input_path):
-    #     print(f"Error: File is not a PDF: {input_path}")
-    #     return
-    # if is_dir_exist(input_path) and not is_dir_contains_pdf(input_path):
-    #     print(f"Error: Directory does not contain any PDF files: {input_path}")
-    #     return
+    output_file = Path(config.output_dir) / "chunks.json"
 
-    print(f"Processing path: {input_path} \n")
-    
-    print(f"Log level: {args.log_level} \n")
-    
-    print(f"Log directory: {args.log_dir} \n")
-    
-    print(f"Output directory: {args.output_dir} \n")
-    
-    print(f"Save results: {args.save_results} \n")
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(
+            [node.to_dict() for node in nodes],
+            f,
+            indent=2,
+            ensure_ascii=False
+        )
 
-    # pipeline = RAGPipeline(use_layout_aware=True)
-    # results = process_path(
-    #     input_path,
-    #     pipeline,
-    #     save_results=args.save_results,
-    #     output_dir=args.output_dir,
-    # )
-    
-    pipeline = ExtractionPipeline(
-        input_path =  input_path,
-        output_path =  args.output_dir
-    )
-    pipeline.run()
+    logger.info(f"Saved to {output_file}")
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,5 +1,0 @@
-from enum import Enum
-
-class DocumentType(str, Enum):
-  SCANNED_PDF_DOCUMENT = "SCANNED_PDF_DOCUMENT"
-  NATIVE_PDF_DOCUMENT = "NATIVE_PDF_DOCUMENT"
